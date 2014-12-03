@@ -13,7 +13,7 @@ opponent = ["user@example.com", "+49160123456789"]
 there = "Opponent"    # Friendly name for "opponent"
 output_file = "conversation.md"
 
-basetime_offset = datetime(2001, 1, 1, 0, 0, 0)
+basetime_offset = datetime(2000, 12, 31, 0, 0, 0)
 timezone_offset = 1
 image_formats = ('png', 'jpeg', 'bmp', 'gif')
 
