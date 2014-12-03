@@ -60,35 +60,61 @@ def main():
 
     date_last = 0
     for row in cur:
-        if row[0] in message_id_list:
 
-            date = basetime_offset + timedelta(timezone_offset, row[2])
+        message, person, date = gather_message(row)
+
+        if date is not None:
             date_today = date.year + date.month + date.day
-            message_text = row[1]
-
-            if message_text is not None:
-                # print("!")
-                message_text = message_text.replace(u'\ufffc', '')
-                message_text = message_text.replace('\n',      '\n> ')
 
             if date_last != date_today:
-                print('##',date.strftime("%d.%m.%Y"),'\n', file=f)
+                print("## {0}".format(date.strftime("%d.%m.%Y")), file=f)
             date_last = date_today
 
-            if row[3] is 0:
                 print(headtext.format(
-                      there,
+                  person,
                       date.strftime("%H:%M:%S")), file=f)
-                print(">", message_text, "\n\n", file=f)
+
+            if message is not None:
+                print(">", message, "\n\n", file=f)
+
+            path_list = gather_images(row[0])
+            for path in path_list:
+                print("![<Attached Image>]({0})".format(path), file=f)
+
+    f.close()
+
+
+def gather_message(db_row):
+
+    global message_id_list
+    message_id = db_row[0]
+    person = db_row[3]
+
+    if person is 0:
+        person = there
             else:
-                print(headtext.format(
-                      here,
-                      date.strftime("%H:%M:%S")), file=f)
-                print(">", message_text, "\n\n", file=f)
+        person = here
+
+    if message_id in message_id_list:
+
+        date = basetime_offset + timedelta(timezone_offset, db_row[2])
+        message_text = db_row[1]
+
+        if message_text is not None:
+            message_text = message_text.replace(u'\ufffc', '')
+            message_text = message_text.replace('\n',      '\n> ')
+
+        return message_text, person, date
+    else:
+        return None, None, None
+
+
+def gather_images(message_id):
 
             query = ("SELECT * FROM message_attachment_join" +
                      " WHERE message_id=?")
-            cur2.execute(query, (row[0],))
+    cur2.execute(query, (message_id,))
+    path_list = []
 
             for attach in cur2:
                 query = ("SELECT filename FROM attachment" +
@@ -101,10 +127,11 @@ def main():
                     path = ospath.expanduser(path)
                     try:
                         if what(path) in image_formats:
-                            print("![<Attached Image>]({0})".format(path), file=f)
+                    path_list.append(path)
                     except FileNotFoundError:
                         continue
-    f.close()
+
+    return path_list
 
 if __name__ == "__main__":
     main()
