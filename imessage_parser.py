@@ -63,6 +63,8 @@ def main():
             date = basetime_offset + timedelta(timezone_offset, row[2])
             date_today = date.year + date.month + date.day
             message_text = row[1]
+
+            if message_text is not None:
             message_text.replace(u'\ufffc', '')
 
             if date_last != date_today:
