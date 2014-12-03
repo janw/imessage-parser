@@ -55,7 +55,7 @@ def main():
             message_id_list.append(p[0])
 
     query = ("SELECT ROWID,text,date,is_from_me FROM message" +
-             " ORDER BY date ASC")
+             " ORDER BY ROWID ASC")
     cur.execute(query)
 
     date_last = 0
