@@ -11,10 +11,13 @@ here = "Jan"        # Friendly name for "myself"
 dbpath = "/Users/janwillhaus/Library/Messages/chat.db"
 opponent = ["user@example.com", "+49160123456789"]
 there = "Opponent"    # Friendly name for "opponent"
+output_file = "conversation.md"
 
 basetime_offset = datetime(2001, 1, 1, 0, 0, 0)
 timezone_offset = 1
 image_formats = ('png', 'jpeg', 'bmp', 'gif')
+
+headtext = '**{0:s} [{1}]**'
 
 ## DB connection
 db = sql.connect(dbpath)
@@ -25,6 +28,7 @@ cur3 = db.cursor()
 
 def main():
 
+    f = open(output_file, 'w')
     query = ("SELECT ROWID FROM chat WHERE chat_identifier=?")
     wanted_chat_id = list(range(len(opponent)))
 
@@ -52,20 +56,29 @@ def main():
              " ORDER BY date ASC")
     cur.execute(query)
 
+    date_last = 0
     for row in cur:
         if row[0] in message_id_list:
 
             date = basetime_offset + timedelta(timezone_offset, row[2])
+            date_today = date.year + date.month + date.day
+            message_text = row[1]
+            message_text.replace(u'\ufffc', '')
+
+            if date_last != date_today:
+                print('##',date.strftime("%d.%m.%Y"),'\n', file=f)
+            date_last = date_today
 
             if row[3] is 0:
-                print('{0:>10s} said on {1}:  '.format(
+                print(headtext.format(
                       there,
-                      date.strftime("%d.%m.%Y %H:%M:%S")), row[1])
+                      date.strftime("%H:%M:%S")), file=f)
+                print(">", message_text, "\n\n", file=f)
             else:
-                print('{0:>10s} said on {1}:  '.format(
+                print(headtext.format(
                       here,
-                      date.strftime("%d.%m.%Y %H:%M:%S")), row[1])
-
+                      date.strftime("%H:%M:%S")), file=f)
+                print(">", message_text, "\n\n", file=f)
 
             query = ("SELECT * FROM message_attachment_join" +
                      " WHERE message_id=?")
@@ -80,12 +93,12 @@ def main():
                 if path is not None:
 
                     path = ospath.expanduser(path)
-
                     try:
                         if what(path) in image_formats:
-                            print("![<Attached Image>]({0})".format(path))
+                            print("![<Attached Image>]({0})".format(path), file=f)
                     except FileNotFoundError:
                         continue
+    f.close()
 
 if __name__ == "__main__":
     main()
