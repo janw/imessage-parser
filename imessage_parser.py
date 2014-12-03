@@ -65,7 +65,9 @@ def main():
             message_text = row[1]
 
             if message_text is not None:
-            message_text.replace(u'\ufffc', '')
+                # print("!")
+                message_text = message_text.replace(u'\ufffc', '')
+                message_text = message_text.replace('\n',      '\n> ')
 
             if date_last != date_today:
                 print('##',date.strftime("%d.%m.%Y"),'\n', file=f)
