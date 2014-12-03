@@ -25,6 +25,8 @@ cur = db.cursor()
 cur2 = db.cursor()
 cur3 = db.cursor()
 
+message_id_list = []
+
 
 def main():
 
@@ -45,7 +47,7 @@ def main():
     wanted_chat_id = [x for x in wanted_chat_id if x != -1]
     print("Loading opponent chat IDs:", wanted_chat_id, "...")
 
-    message_id_list = []
+    global message_id_list
     for n in wanted_chat_id:
         query = ("SELECT message_id FROM chat_message_join WHERE chat_id=?")
         cur.execute(query, (n,))
