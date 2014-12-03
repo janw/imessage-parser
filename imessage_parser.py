@@ -14,6 +14,7 @@ there = "Opponent"    # Friendly name for "opponent"
 
 basetime_offset = datetime(2001, 1, 1, 0, 0, 0)
 timezone_offset = 1
+image_formats = ('png', 'jpeg', 'bmp', 'gif')
 
 ## DB connection
 db = sql.connect(dbpath)
@@ -81,7 +82,7 @@ def main():
                     path = ospath.expanduser(path)
 
                     try:
-                        if what(path) in ('png', 'jpeg', 'bmp', 'gif'):
+                        if what(path) in image_formats:
                             print("![<Attached Image>]({0})".format(path))
                     except FileNotFoundError:
                         continue
