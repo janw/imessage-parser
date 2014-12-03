@@ -17,7 +17,7 @@ basetime_offset = datetime(2001, 1, 1, 0, 0, 0)
 timezone_offset = 1
 image_formats = ('png', 'jpeg', 'bmp', 'gif')
 
-headtext = '**{0:s} [{1}]**'
+headtext = '\n**{0:s} [{1}]**'
 
 ## DB connection
 db = sql.connect(dbpath)
@@ -59,6 +59,7 @@ def main():
     cur.execute(query)
 
     date_last = 0
+    person_last = ""
     for row in cur:
 
         message, person, date = gather_message(row)
@@ -68,14 +69,19 @@ def main():
 
             if date_last != date_today:
                 print("## {0}".format(date.strftime("%d.%m.%Y")), file=f)
+                person_last = ""
             date_last = date_today
 
+            if person_last != person:
                 print(headtext.format(
                   person,
                       date.strftime("%H:%M:%S")), file=f)
+            else:
+                print("> ", file=f)
+            person_last = person
 
             if message is not None:
-                print(">", message, "\n\n", file=f)
+                print(">", message, file=f)
 
             path_list = gather_images(row[0])
             for path in path_list:
