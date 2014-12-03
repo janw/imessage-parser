@@ -3,6 +3,8 @@
 import sqlite3 as sql
 from datetime import datetime
 from datetime import timedelta
+from imghdr import what
+from os import path as ospath
 
 ## Settings
 here = "Jan"        # Friendly name for "myself"
@@ -17,6 +19,7 @@ timezone_offset = 1
 db = sql.connect(dbpath)
 cur = db.cursor()
 cur2 = db.cursor()
+cur3 = db.cursor()
 
 
 def main():
@@ -34,7 +37,7 @@ def main():
             wanted_chat_id[nn] = -1
 
     # Eliminate -1 and be verbose
-    wanted_chat_id = [x for x in list if x != -1]
+    wanted_chat_id = [x for x in wanted_chat_id if x != -1]
     print("Loading opponent chat IDs:", wanted_chat_id, "...")
 
     message_id_list = []
@@ -52,7 +55,6 @@ def main():
         if row[0] in message_id_list:
 
             date = basetime_offset + timedelta(timezone_offset, row[2])
-            print(date)
 
             if row[3] is 0:
                 print('{0:>10s} said on {1}:  '.format(
@@ -63,6 +65,26 @@ def main():
                       here,
                       date.strftime("%d.%m.%Y %H:%M:%S")), row[1])
 
+
+            query = ("SELECT * FROM message_attachment_join" +
+                     " WHERE message_id=?")
+            cur2.execute(query, (row[0],))
+
+            for attach in cur2:
+                query = ("SELECT filename FROM attachment" +
+                     " WHERE ROWID=?")
+                cur3.execute(query, (attach[1],))
+                path = cur3.fetchone()[0]
+
+                if path is not None:
+
+                    path = ospath.expanduser(path)
+
+                    try:
+                        if what(path) in ('png', 'jpeg', 'bmp', 'gif'):
+                            print("![<Attached Image>]({0})".format(path))
+                    except FileNotFoundError:
+                        continue
 
 if __name__ == "__main__":
     main()
