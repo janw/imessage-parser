@@ -9,7 +9,7 @@ from os import path as ospath
 ## Settings
 here = "Jan"        # Friendly name for "myself"
 dbpath = "/Users/janwillhaus/Library/Messages/chat.db"
-opponent = ["user@example.com", "+49160123456789"]
+opponent = ["***REMOVED***", "+49160123456789"]
 there = "Opponent"    # Friendly name for "opponent"
 output_file = "conversation.md"
 
@@ -44,8 +44,8 @@ def main():
     wanted_chat_id = [x for x in wanted_chat_id if x != -1]
     print("Loading opponent chat IDs:", wanted_chat_id, "...")
 
-    placeholder= '?' # For SQLite. See DBAPI paramstyle.
-    placeholders= ', '.join(placeholder for unused in wanted_chat_id)
+    placeholder = '?'
+    placeholders = ', '.join(placeholder for unused in wanted_chat_id)
 
     query = ("SELECT message.ROWID, message.text, date, is_from_me FROM message LEFT JOIN chat_message_join ON message.ROWID = chat_message_join.message_id  WHERE chat_id IN (%s)" % placeholders)
     cur.execute(query, wanted_chat_id)
@@ -107,23 +107,17 @@ def gather_message(db_row):
 
 def gather_images(message_id):
 
-    query = ("SELECT * FROM message_attachment_join" +
-             " WHERE message_id=?")
+    query = ("SELECT filename FROM attachment LEFT JOIN message_attachment_join ON attachment.ROWID = message_attachment_join.attachment_id WHERE message_id=?")
+
     cur2.execute(query, (message_id,))
+
     path_list = []
-
     for attach in cur2:
-        query = ("SELECT filename FROM attachment" +
-             " WHERE ROWID=?")
-        cur3.execute(query, (attach[1],))
-        path = cur3.fetchone()[0]
-
-        if path is not None:
-
-            path = ospath.expanduser(path)
+        if attach[0] is not None:
+            attach = ospath.expanduser(attach[0])
             try:
-                if what(path) in image_formats:
-                    path_list.append(path)
+                if what(attach) in image_formats:
+                    path_list.append(attach)
             except FileNotFoundError:
                 continue
 
