@@ -25,9 +25,6 @@ cur = db.cursor()
 cur2 = db.cursor()
 cur3 = db.cursor()
 
-message_id_list = []
-
-
 def main():
 
     f = open(output_file, 'w')
@@ -47,16 +44,11 @@ def main():
     wanted_chat_id = [x for x in wanted_chat_id if x != -1]
     print("Loading opponent chat IDs:", wanted_chat_id, "...")
 
-    global message_id_list
-    for n in wanted_chat_id:
-        query = ("SELECT message_id FROM chat_message_join WHERE chat_id=?")
-        cur.execute(query, (n,))
-        for p in cur:
-            message_id_list.append(p[0])
+    placeholder= '?' # For SQLite. See DBAPI paramstyle.
+    placeholders= ', '.join(placeholder for unused in wanted_chat_id)
 
-    query = ("SELECT ROWID,text,date,is_from_me FROM message" +
-             " ORDER BY ROWID ASC")
-    cur.execute(query)
+    query = ("SELECT message.ROWID, message.text, date, is_from_me FROM message LEFT JOIN chat_message_join ON message.ROWID = chat_message_join.message_id  WHERE chat_id IN (%s)" % placeholders)
+    cur.execute(query, wanted_chat_id)
 
     date_last = 0
     person_last = ""
@@ -74,7 +66,7 @@ def main():
 
             if person_last != person:
                 print(headtext.format(
-                  person,
+                      person,
                       date.strftime("%H:%M:%S")), file=f)
             else:
                 print("> ", file=f)
@@ -98,17 +90,15 @@ def gather_message(db_row):
 
     if person is 0:
         person = there
-            else:
+    else:
         person = here
 
-    if message_id in message_id_list:
+    date = basetime_offset + timedelta(timezone_offset, db_row[2])
+    message_text = db_row[1]
 
-        date = basetime_offset + timedelta(timezone_offset, db_row[2])
-        message_text = db_row[1]
-
-        if message_text is not None:
-            message_text = message_text.replace(u'\ufffc', '')
-            message_text = message_text.replace('\n',      '\n> ')
+    if message_text is not None:
+        message_text = message_text.replace(u'\ufffc', '')
+        message_text = message_text.replace('\n',      '\n> ')
 
         return message_text, person, date
     else:
@@ -117,25 +107,25 @@ def gather_message(db_row):
 
 def gather_images(message_id):
 
-            query = ("SELECT * FROM message_attachment_join" +
-                     " WHERE message_id=?")
+    query = ("SELECT * FROM message_attachment_join" +
+             " WHERE message_id=?")
     cur2.execute(query, (message_id,))
     path_list = []
 
-            for attach in cur2:
-                query = ("SELECT filename FROM attachment" +
-                     " WHERE ROWID=?")
-                cur3.execute(query, (attach[1],))
-                path = cur3.fetchone()[0]
+    for attach in cur2:
+        query = ("SELECT filename FROM attachment" +
+             " WHERE ROWID=?")
+        cur3.execute(query, (attach[1],))
+        path = cur3.fetchone()[0]
 
-                if path is not None:
+        if path is not None:
 
-                    path = ospath.expanduser(path)
-                    try:
-                        if what(path) in image_formats:
+            path = ospath.expanduser(path)
+            try:
+                if what(path) in image_formats:
                     path_list.append(path)
-                    except FileNotFoundError:
-                        continue
+            except FileNotFoundError:
+                continue
 
     return path_list
 
