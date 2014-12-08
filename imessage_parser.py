@@ -6,24 +6,24 @@ from datetime import timedelta
 from imghdr import what
 from os import path as ospath
 
-## Settings
-here = "Jan"        # Friendly name for "myself"
-dbpath = "/Users/janwillhaus/Library/Messages/chat.db"
-opponent = ["***REMOVED***", "+49160123456789"]
-there = "Opponent"    # Friendly name for "opponent"
-output_file = "conversation.md"
+## Settings ###########################
+my_name         = "Jan"
+dbpath          = "~/Library/Messages/chat.db"
+opponent        = ["imessage@example.com", "+49160123456789"]
+opponent_name   = "Opponent"
+output_file     = "conversation.md"
+#######################################
 
+# Some constants
 basetime_offset = datetime(2000, 12, 31, 0, 0, 0)
 timezone_offset = 1
 image_formats = ('png', 'jpeg', 'bmp', 'gif')
-
 headtext = '\n**{0:s} [{1}]**'
 
-## DB connection
-db = sql.connect(dbpath)
+# DB connection
+db = sql.connect(ospath.expanduser(dbpath))
 cur = db.cursor()
 cur2 = db.cursor()
-cur3 = db.cursor()
 
 def main():
 
@@ -89,16 +89,16 @@ def gather_message(db_row):
     person = db_row[3]
 
     if person is 0:
-        person = there
+        person = opponent_name
     else:
-        person = here
+        person = my_name
 
     date = basetime_offset + timedelta(timezone_offset, db_row[2])
     message_text = db_row[1]
 
     if message_text is not None:
         message_text = message_text.replace(u'\ufffc', '')
-        message_text = message_text.replace('\n',      '\n> ')
+        message_text = message_text.replace('\n', '\n> ')
 
         return message_text, person, date
     else:
@@ -112,12 +112,12 @@ def gather_images(message_id):
     cur2.execute(query, (message_id,))
 
     path_list = []
-    for attach in cur2:
-        if attach[0] is not None:
-            attach = ospath.expanduser(attach[0])
+    for attachment in cur2:
+        if attachment[0] is not None:
+            attachment = ospath.expanduser(attachment[0])
             try:
-                if what(attach) in image_formats:
-                    path_list.append(attach)
+                if what(attachment) in image_formats:
+                    path_list.append(attachment)
             except FileNotFoundError:
                 continue
 
