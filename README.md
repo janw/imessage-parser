@@ -30,8 +30,7 @@ output_file     = "conversation.md"
 
 ## Format
 
-Just as an example, here's an example of the formated output inside of the conversational Markdown file:
-
+Just as an example, here's an example of the formated output inside of the conversational Markdown file. The attentive audience will notice, that some timestamps include multiple lines instead of just one. This is where the timestamps of consecutive messages have been combined into one, so the conversation is not cluttered by formalia.
 
 ```markdown
 ## 10.10.2013
@@ -56,13 +55,11 @@ Just as an example, here's an example of the formated output inside of the conve
 > Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.
 ```
 
-
-
 ## Todo
 
-* Add ability to define a preferred format on feeds that contain links for multiple audio codecs.
-* Add ability to define a range of episodes or time to download only episode from that point on or from there to the beginning or or or …
-* Add ability to choose a prefix episodes with the episode number (rarely necessary, since most podcasts feature some kind of episode numbering in the filename)
+* Add support for direct HTML export
+* Maybe transfer the settings to command line options?
+* Streamline database queries and code
 
 ## License
 
